@@ -1,0 +1,26 @@
+version: '3'
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    ports:
+      - "8080:8080"
+    networks:
+      - mynet
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    # frontend 컨테이너 자체가 80 포트를 열고 있음
+    ports:
+      - "80:80"
+    networks:
+      - mynet
+
+networks:
+  mynet:
+    driver: bridge
