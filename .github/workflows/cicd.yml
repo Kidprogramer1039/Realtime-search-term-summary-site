@@ -21,13 +21,13 @@ jobs:
       # 3) 백엔드 이미지 빌드 & 푸시
       - name: Build & Push Backend
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/realtime-backend:latest ./be
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/realtime-backend:latest ./be --progress=plain
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/realtime-backend:latest
 
       # 4) 프론트엔드 이미지 빌드 & 푸시
       - name: Build & Push Frontend
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/realtime-frontend:latest ./fe
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/realtime-frontend:latest ./fe --progress=plain
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/realtime-frontend:latest
 
   deploy:
@@ -38,13 +38,13 @@ jobs:
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v0.1.8
         with:
-          host: ${{ secrets.EC2_HOST }}       # 43.203.119.186 (퍼블릭 IP)
-          username: ubuntu                    # EC2 접속 유저(예: ubuntu, ec2-user 등)
-          key: ${{ secrets.EC2_SSH_KEY }}     # 깃헙 Secrets에 등록한 SSH private key
+          host: ${{ secrets.EC2_HOST }}       # EC2 퍼블릭 IP
+          username: ubuntu                    # EC2 접속 유저
+          key: ${{ secrets.EC2_SSH_KEY }}     # SSH private key
           port: 22
           script: |
             echo "[DEPLOY] Pulling latest images..."
             cd /home/ubuntu/myapp  # docker-compose.yml이 있는 위치로 이동
-            echo "${DOCKERHUB_PASSWORD}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
+            echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
             docker-compose pull
             docker-compose up -d

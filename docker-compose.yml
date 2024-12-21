@@ -2,7 +2,7 @@ version: '3'
 services:
   backend:
     build:
-      context: ./backend
+      context: ./be          # 기존 ./backend에서 ./be로 수정
       dockerfile: Dockerfile
     container_name: backend
     ports:
@@ -12,7 +12,7 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: ./fe          # 기존 ./frontend에서 ./fe로 수정
       dockerfile: Dockerfile
     container_name: frontend
     # frontend 컨테이너 자체가 80 포트를 열고 있음
@@ -23,4 +23,4 @@ services:
 
 networks:
   mynet:
-    driver: bridge
+    driver: bridge 
