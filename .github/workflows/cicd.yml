@@ -45,5 +45,7 @@ jobs:
             echo "[DEPLOY] Pulling latest images..."
             cd /home/ubuntu/myapp
             echo "${{ secrets.DOCKERHUB_PASSWORD }}" | sudo docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-            sudo docker-compose pull
-            sudo docker-compose up -d
+            sudo docker pull your-dockerhub-username/realtime-backend:latest
+            sudo docker pull your-dockerhub-username/realtime-frontend:latest
+            sudo docker compose up -d
+
