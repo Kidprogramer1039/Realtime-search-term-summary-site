@@ -34,17 +34,16 @@ jobs:
     needs: [build-and-push]
     runs-on: ubuntu-latest
     steps:
-      # 1) SSH 접속 액션 (appleboy/ssh-action 등)
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v0.1.8
         with:
-          host: ${{ secrets.EC2_HOST }}       # EC2 퍼블릭 IP
-          username: ubuntu                    # EC2 접속 유저
-          key: ${{ secrets.EC2_SSH_KEY }}     # SSH private key
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
             echo "[DEPLOY] Pulling latest images..."
-            cd /home/ubuntu/myapp  # docker-compose.yml이 있는 위치로 이동
-            echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-            docker-compose pull
-            docker-compose up -d
+            cd /home/ubuntu/myapp
+            echo "${{ secrets.DOCKERHUB_PASSWORD }}" | sudo docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+            sudo docker-compose pull
+            sudo docker-compose up -d
