@@ -15,9 +15,9 @@ services:
       context: ./fe          # 기존 ./frontend에서 ./fe로 수정
       dockerfile: Dockerfile
     container_name: frontend
-    # frontend 컨테이너 자체가 80 포트를 열고 있음
+    # frontend 컨테이너 자체가 80 포트를 열고 있음+ 80포트 테스트용
     ports:
-      - "80:80"z
+      - "80:80"
     networks:
       - mynet
 
