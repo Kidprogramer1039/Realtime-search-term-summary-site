@@ -2,17 +2,18 @@ package com.search.be.login.api;
 
 import com.search.be.login.dto.TokenErrorResult;
 import com.search.be.login.dto.TokenException;
-import com.search.be.login.jwt.JwtUtil;
 import com.search.be.login.repository.RefreshTokenRepository;
 import com.search.be.login.token.RefreshToken;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
 @Service
+@Component
 @RequiredArgsConstructor
 public class TokenServiceImpl implements TokenService {
     @Value("${jwt.access-token.expiration-time}")

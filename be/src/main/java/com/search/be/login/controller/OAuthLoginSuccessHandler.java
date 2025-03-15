@@ -4,7 +4,7 @@ import com.search.be.login.info.GoogleUserInfo;
 import com.search.be.login.info.KakaoUserInfo;
 import com.search.be.login.info.NaverUserInfo;
 import com.search.be.login.info.OAuth2UserInfo;
-import com.search.be.login.jwt.JwtUtil;
+import com.search.be.login.api.JwtUtil;
 import com.search.be.login.repository.RefreshTokenRepository;
 import com.search.be.login.repository.User;
 import com.search.be.login.repository.UserRepository;
