@@ -1,4 +1,4 @@
-package com.search.be.login.jwt;
+package com.search.be.login.api;
 
 import com.search.be.login.dto.TokenErrorResult;
 import com.search.be.login.dto.TokenException;
