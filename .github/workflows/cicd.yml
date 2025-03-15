@@ -3,29 +3,25 @@ name: CI/CD to EC2
 on:
   push:
     branches:
-      - main   # main 브랜치 푸시에 동작
+      - main
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     steps:
-      # 1) 체크아웃
-      - name: Check out
+      - name: Check out repository
         uses: actions/checkout@v3
 
-      # 2) Docker 로그인 (DockerHub)
       - name: Log in to DockerHub
         run: |
           echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-      # 3) 백엔드 이미지 빌드 & 푸시
-      - name: Build & Push Backend
+      - name: Build & Push Backend Image
         run: |
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/realtime-backend:latest ./be --progress=plain
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/realtime-backend:latest
 
-      # 4) 프론트엔드 이미지 빌드 & 푸시
-      - name: Build & Push Frontend
+      - name: Build & Push Frontend Image
         run: |
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/realtime-frontend:latest ./fe --progress=plain
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/realtime-frontend:latest
@@ -44,8 +40,16 @@ jobs:
           script: |
             echo "[DEPLOY] Pulling latest images..."
             cd /home/ubuntu/myapp
+            
             echo "${{ secrets.DOCKERHUB_PASSWORD }}" | sudo docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+            
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/realtime-backend:latest
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/realtime-frontend:latest
+            
+            sudo docker compose down
+            
+            echo "[DEPLOY] Starting containers..."
             sudo docker compose up -d
-
+            
+            echo "[DEPLOY] Checking container status..."
+            sudo docker ps
