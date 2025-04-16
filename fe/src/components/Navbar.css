@@ -1,0 +1,14 @@
+.navbar {
+    display: flex;
+    justify-content: space-around;
+    padding: 1rem;
+    background-color: rgb(130, 203, 232);
+    color: white;
+    font-weight: bold;
+    flex-wrap: wrap;
+  }
+  
+  .navbar a {
+    margin: 0.5rem;
+    color: white;
+  }  
