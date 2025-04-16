@@ -13,6 +13,7 @@ local.properties
 # VSCode 무시
 *.vscode
 
+*.vscode
 # External tool builders
 .externalToolBuilders/
 
