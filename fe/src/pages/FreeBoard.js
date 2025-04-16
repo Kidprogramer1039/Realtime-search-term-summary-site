@@ -7,8 +7,25 @@ import {
   TableRow,
   TableCell,
   TableBody,
+  TableSortLabel,
   Typography
 } from '@mui/material';
+
+function descendingComparator(a, b, orderBy) {
+  if (b[orderBy] < a[orderBy]) {
+    return -1;
+  }
+  if (b[orderBy] > a[orderBy]) {
+    return 1;
+  }
+  return 0;
+}
+
+function getComparator(order, orderBy) {
+  return order === 'desc'
+    ? (a, b) => descendingComparator(a, b, orderBy)
+    : (a, b) => -descendingComparator(a, b, orderBy);
+}
 
 const FreeBoard = () => {
   // 게임 관련 예시 더미 데이터
@@ -55,35 +72,62 @@ const FreeBoard = () => {
     }
   ];
 
+  // 헤더 셀 정의 (id는 실제 데이터의 키값)
+  const headCells = [
+    { id: 'id', label: '번호', numeric: true },
+    { id: 'title', label: '제목', numeric: false },
+    { id: 'author', label: '글쓴이', numeric: false },
+    { id: 'date', label: '날짜', numeric: false },
+    { id: 'views', label: '조회', numeric: true },
+    { id: 'likes', label: '추천', numeric: true },
+  ];
+
+  const [order, setOrder] = React.useState('asc');
+  const [orderBy, setOrderBy] = React.useState('id');
+
+  const handleRequestSort = (property) => {
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(property);
+  };
+
+  const sortedRows = rows.slice().sort(getComparator(order, orderBy));
+
   return (
     <div>
-      {/* 게시판 제목 */}
       <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
         게임 자유 게시판
       </Typography>
-
-      {/* 테이블 */}
       <TableContainer component={Paper}>
         <Table>
           <TableHead sx={{ backgroundColor: '#f3f3f3' }}>
             <TableRow>
-              <TableCell sx={{ fontWeight: 'bold', width: '5%' }}>번호</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>제목</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>글쓴이</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>날짜</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>조회</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>추천</TableCell>
+              {headCells.map((headCell) => (
+                <TableCell
+                  key={headCell.id}
+                  align={headCell.numeric ? 'right' : 'left'}
+                  sx={{ fontWeight: 'bold' }}
+                >
+                  <TableSortLabel
+                    active={orderBy === headCell.id}
+                    direction={orderBy === headCell.id ? order : 'asc'}
+                    onClick={() => handleRequestSort(headCell.id)}
+                  >
+                    {headCell.label}
+                  </TableSortLabel>
+                </TableCell>
+              ))}
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.map((row) => (
+            {sortedRows.map((row) => (
               <TableRow key={row.id} hover>
-                <TableCell>{row.id}</TableCell>
+                <TableCell align="right">{row.id}</TableCell>
                 <TableCell>{row.title}</TableCell>
                 <TableCell>{row.author}</TableCell>
                 <TableCell>{row.date}</TableCell>
-                <TableCell>{row.views}</TableCell>
-                <TableCell>{row.likes}</TableCell>
+                <TableCell align="right">{row.views}</TableCell>
+                <TableCell align="right">{row.likes}</TableCell>
               </TableRow>
             ))}
           </TableBody>
