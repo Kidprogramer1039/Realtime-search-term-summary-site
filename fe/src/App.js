@@ -1,11 +1,11 @@
 import React from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import Navbar from '../Realtime-search-term-summary-site/fe/src/components/Navbar';
-import Sidebar from '../Realtime-search-term-summary-site/fe/src/components/Sidebar';
-import Home from '../Realtime-search-term-summary-site/fe/src/pages/Home';
-import InfoBoard from '../Realtime-search-term-summary-site/fe/src/pages/InfoBoard';
-import FreeBoard from '../Realtime-search-term-summary-site/fe/src/pages/FreeBoard';
-import CommunityBoard from '../Realtime-search-term-summary-site/fe/src/pages/CommunityBoard';
+import Navbar from './components/Navbar';
+import Sidebar from './components/Sidebar';
+import Home from './pages/Home';
+import InfoBoard from './pages/InfoBoard';
+import FreeBoard from './pages/FreeBoard';
+import CommunityBoard from './pages/CommunityBoard';
 import './App.css';
 
 function App() {
