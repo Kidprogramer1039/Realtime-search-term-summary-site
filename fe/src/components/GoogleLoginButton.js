@@ -26,7 +26,7 @@ console.log('API_BASE =', API_BASE);  // ← 이 줄 추가
 
 const GoogleLoginButton = () => {
   const handleClick = () => {
-    window.location.href = `${API_BASE}/oauth2/authorization/google`;
+    window.location.href = `${API_BASE}:8080/oauth2/authorization/google`;
   };
 
   return (
