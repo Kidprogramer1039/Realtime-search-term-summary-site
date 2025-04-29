@@ -1,6 +1,5 @@
 import React from 'react';
 import styled from 'styled-components';
-import GoogleLoginButton from './GoogleLoginButton';
 
 const HeaderContainer = styled.header`
   display: flex;
@@ -34,7 +33,6 @@ export default function Header() {
         <Title>참견해주세요</Title>
         <Subtitle>자극적인 것을 좋아하는 현대인을 위한 소셜 피드백 플랫폼</Subtitle>
       </TitleWrapper>
-      <GoogleLoginButton />
     </HeaderContainer>
   );
 }
