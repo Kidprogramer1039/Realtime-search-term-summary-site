@@ -13,13 +13,12 @@ import './App.css';
 function App() {
   return (
     <div className="app">
-      {/* OAuth 콜백 전용 라우트 */}
       <Routes>
         <Route path="/login" element={<LoginCallback />} />
       </Routes>
 
-      {/* SPA 메인 UI */}
       <Header />
+
       <Navbar />
 
       <div className="main-layout" style={{ display: 'flex', flex: 1 }}>

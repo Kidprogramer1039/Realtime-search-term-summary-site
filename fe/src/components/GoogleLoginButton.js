@@ -4,7 +4,10 @@ import styled, { createGlobalStyle } from 'styled-components';
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
-  body, button { font-family: 'Noto Sans KR', sans-serif; }
+
+  body, button {
+    font-family: 'Noto Sans KR', sans-serif;
+  }
 `;
 
 const LoginButton = styled.button`
@@ -18,12 +21,12 @@ const LoginButton = styled.button`
   font-size: 16px;
 `;
 
+const API_BASE = process.env.REACT_APP_API_BASE_URL || window.location.origin;
+console.log('API_BASE =', API_BASE);  // ← 이 줄 추가
+
 const GoogleLoginButton = () => {
   const handleClick = () => {
-    // 상대 경로로만 호출하면
-    // 개발 환경: localhost:3000/oauth2/authorization/google
-    // 배포 환경: ec2-…:8080/oauth2/authorization/google
-    window.location.href = ':8080/oauth2/authorization/google';
+    window.location.href = `${API_BASE}:8080/oauth2/authorization/google`;
   };
 
   return (
