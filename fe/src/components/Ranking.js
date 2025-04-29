@@ -9,31 +9,22 @@ const Ranking = () => {
   const [ranking, setRanking] = useState([]);
 
   useEffect(() => {
-    // 실제 API 대신 mock 데이터 사용
     const mockData = [
       { name: '홍길동' },
       { name: '김철수' },
-      { name: '박영희' }
+      { name: '박영희' },
     ];
     setRanking(mockData);
   }, []);
 
   return (
-    <Paper elevation={3} sx={{ marginBottom: '20px' }}>
-      <Typography
-        variant="subtitle1"
-        sx={{
-          backgroundColor: '#333',
-          color: '#fff',
-          padding: '10px',
-          fontWeight: 'bold'
-        }}
-      >
+    <Paper sx={{ width: 240, mb: 2, p: 1 }}>
+      <Typography variant="subtitle1" sx={{ backgroundColor: '#333', color: '#fff', p: 1 }}>
         오늘의 랭킹
       </Typography>
-      <List sx={{ padding: 0 }}>
+      <List sx={{ p: 0 }}>
         {ranking.map((user, idx) => (
-          <ListItem key={idx} divider sx={{ padding: '10px 16px' }}>
+          <ListItem key={idx} divider sx={{ py: 1 }}>
             <ListItemText primary={user.name} />
           </ListItem>
         ))}
