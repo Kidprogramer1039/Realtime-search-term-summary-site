@@ -22,7 +22,6 @@ const LoginButton = styled.button`
 `;
 
 const API_BASE = process.env.REACT_APP_API_BASE_URL || window.location.origin;
-console.log('API_BASE =', API_BASE);  // ← 이 줄 추가
 
 const GoogleLoginButton = () => {
   const handleClick = () => {
