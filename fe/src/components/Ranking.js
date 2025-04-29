@@ -1,4 +1,9 @@
 import { useEffect, useState } from 'react';
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
 
 const Ranking = () => {
   const [ranking, setRanking] = useState([]);
@@ -14,14 +19,26 @@ const Ranking = () => {
   }, []);
 
   return (
-    <div>
-      <h3>오늘의 랭킹</h3>
-      <ul>
+    <Paper elevation={3} sx={{ marginBottom: '20px' }}>
+      <Typography
+        variant="subtitle1"
+        sx={{
+          backgroundColor: '#333',
+          color: '#fff',
+          padding: '10px',
+          fontWeight: 'bold'
+        }}
+      >
+        오늘의 랭킹
+      </Typography>
+      <List sx={{ padding: 0 }}>
         {ranking.map((user, idx) => (
-          <li key={idx}>{user.name}</li>
+          <ListItem key={idx} divider sx={{ padding: '10px 16px' }}>
+            <ListItemText primary={user.name} />
+          </ListItem>
         ))}
-      </ul>
-    </div>
+      </List>
+    </Paper>
   );
 };
 
