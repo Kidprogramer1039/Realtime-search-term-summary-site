@@ -1,7 +1,27 @@
-import React from 'react';
-import { useAuthCallback } from '../hooks/useAuthCallback';
+// src/pages/LoginCallback.js
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-export default function LoginCallback() {
-  useAuthCallback();
-  return <p>로그인 처리 중입니다…</p>;
+function LoginCallback() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const name    = params.get('name');
+    const access  = params.get('access_token');
+    const refresh = params.get('refresh_token');
+
+    if (access) {
+      localStorage.setItem('name', name);
+      localStorage.setItem('access_token', access);
+      localStorage.setItem('refresh_token', refresh);
+    }
+
+    // 홈으로 돌아가면서 URL 쿼리 제거
+    navigate('/', { replace: true });
+  }, [navigate]);
+
+  return null;
 }
+
+export default LoginCallback;
