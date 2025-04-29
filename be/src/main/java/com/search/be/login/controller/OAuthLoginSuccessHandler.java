@@ -80,6 +80,8 @@ public class OAuthLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHand
                     .name(name)
                     .provider(provider)
                     .providerId(providerId)
+                    .postCount(0)  // 기본 게시글 수 0으로 설정
+                    .postPoints(0)
                     .build();
             userRepository.save(user);
         } else {

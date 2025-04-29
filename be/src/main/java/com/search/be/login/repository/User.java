@@ -32,6 +32,17 @@ public class User {
     @Column(name = "provider_id", nullable = false, length = 50)
     private String providerId;
 
+    // 게시글 개수를 저장하는 컬럼 (기본값 0)
+    @Builder.Default
+    @Column(name = "post_count", nullable = false, columnDefinition = "INT DEFAULT 0")
+    private int postCount = 0;
+
+
+    // 게시글 개수를 저장하는 컬럼 (기본값 0)
+    @Builder.Default
+    @Column(name = "post_points", nullable = false, columnDefinition = "INT DEFAULT 0")
+    private int postPoints = 0;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, length = 20)
     private LocalDateTime createdAt;
