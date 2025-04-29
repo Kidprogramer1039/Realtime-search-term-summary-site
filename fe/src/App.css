@@ -1,4 +1,39 @@
 body {
   margin: 0;
   font-family: 'Roboto', sans-serif;
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.top-home {
+  padding: 2rem;
+  background-color: #f9f9f9;
+}
+
+.main-layout {
+  display: flex;
+  flex: 1;
+}
+
+.page-content {
+  flex: 1;
+  padding: 20px;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-around;
+  padding: 1rem;
+  background-color: #3399ff;
+  color: white;
+  font-weight: bold;
+  flex-wrap: wrap;
+}
+
+.navbar a {
+  margin: 0.5rem;
+  color: white;
+  text-decoration: none;
 }
