@@ -21,8 +21,7 @@ const LoginButton = styled.button`
   font-size: 16px;
 `;
 
-// const API_BASE = process.env.REACT_APP_API_BASE_URL || window.location.origin;
-const API_BASE = `http://localhost`;
+const API_BASE = process.env.REACT_APP_API_BASE_URL || window.location.origin;
 
 const GoogleLoginButton = () => {
   const handleClick = () => {
