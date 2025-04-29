@@ -2,12 +2,6 @@ import React from 'react';
 import { Grid, Typography, Card, Divider, Box } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
-// 이미지 파일 import
-import aiImage from '../tempimg/ai-generated-8016685_1280.jpg';
-import carImage from '../tempimg/car-8514314_1280.png';
-import unsplashImage from '../tempimg/chuttersnap-xfaYAsMV1p8-unsplash.jpg';
-import image2 from '../tempimg/ai-generated-8724363_1280.jpg';
-import image5 from '../tempimg/ai-generated-8775213_1280.png';
 
 // Custom theme with blue primary color
 const theme = createTheme({
@@ -37,12 +31,6 @@ const MainContent = () => {
   ];
 
   const recommendedArticles = [
-    { title: '지난 주 수요일 평소보다 공장 가동 시간 늘어나... "피곤"', views: 1200, image: aiImage },
-    { title: '자동차 업계 관련자들은 공장 운영...', views: 900, image: carImage },
-    { title: '전기차 충전소 증가로 인해...', views: 700, image: unsplashImage },
-    { title: '로또 당첨금 증가..', views: 700, image: image2 },
-    { title: '"그런 말 한적 없다" 충격적 실체..', views: 700, image: image5 },
-    { title: '아침 드라마 대박나..', views: 700, image: unsplashImage },
   ];
 
   return (
