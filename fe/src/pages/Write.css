@@ -1,0 +1,37 @@
+/* src/pages/Write.css */
+.board-write {
+  max-width: 600px;
+  margin: 2rem auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.board-write-input,
+.board-write-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.board-write-textarea {
+  min-height: 200px;
+  resize: vertical;
+}
+
+.board-write-button {
+  align-self: flex-end;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  background-color: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.board-write-button:hover {
+  background-color: #115293;
+}

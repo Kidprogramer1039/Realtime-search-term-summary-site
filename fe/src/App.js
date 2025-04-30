@@ -8,6 +8,7 @@ import Home             from './pages/Home';
 import InfoBoard        from './pages/InfoBoard';
 import FreeBoard        from './pages/FreeBoard';
 import CommunityBoard   from './pages/CommunityBoard';
+import Write            from './pages/Write';
 import LoginCallback    from './pages/LoginCallback';
 import './App.css';
 
@@ -34,6 +35,7 @@ function App() {
         <div className="page-content" style={{ flex: 1, padding: '1rem' }}>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/write" element={<Write />} />
             <Route path="/info" element={<InfoBoard />} />
             <Route path="/free" element={<FreeBoard />} />
             <Route path="/community" element={<CommunityBoard />} />
