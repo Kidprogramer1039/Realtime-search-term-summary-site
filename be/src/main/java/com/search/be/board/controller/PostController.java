@@ -1,4 +1,3 @@
-// src/main/java/com/search/be/board/controller/PostController.java
 package com.search.be.board.controller;
 
 import com.search.be.board.dto.CreatePostRequest;
@@ -15,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -30,62 +28,7 @@ public class PostController {
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
 
-    @PostMapping
-    public ResponseEntity<ApiResponse<Post>> createPost(
-            @RequestHeader("Authorization") String authorizationHeader,
-            @RequestBody CreatePostRequest request
-    ) {
-        // 1) 헤더에서 토큰만 추출
-        String token = jwtUtil.getTokenFromHeader(authorizationHeader);
-        // 2) 토큰 → userId → User 조회
-        UUID userUuid = UUID.fromString(jwtUtil.getUserIdFromToken(token));
-        User user = userRepository.findByUserId(userUuid)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
-
-        // 3) Post 생성
-        Post post = Post.builder()
-                .title(request.getTitle())
-                .content(request.getContent())
-                .writer(user.getName())       // 이제 null 아님
-                .createdAt(LocalDateTime.now())
-                .build();
-        postRepository.save(post);
-
-        return ApiResponse.onSuccess(SuccessStatus._CREATED, post);
-    }
-    /**
-     * 내 글만 조회 (인증 필요)
-     */
-    @GetMapping("/my")
-    public ResponseEntity<ApiResponse<List<PostResponseDto>>> getMyPosts(
-            @RequestHeader("Authorization") String authorizationHeader,
-            @RequestHeader("X-User-Name") String writer
-    ) {
-        // 토큰 유효성 체크
-        String token = jwtUtil.getTokenFromHeader(authorizationHeader);
-        jwtUtil.getUserIdFromToken(token);
-
-        log.info("[GET /api/v1/posts/my] 요청받음 - writer={}", writer);
-
-        List<PostResponseDto> response = postRepository
-                .findByWriter(writer)
-                .stream()
-                .map(p -> PostResponseDto.builder()
-                        .id(p.getId())
-                        .title(p.getTitle())
-                        .content(p.getContent())
-                        .writer(p.getWriter())
-                        .createdAt(p.getCreatedAt())
-                        .build()
-                ).collect(Collectors.toList());
-
-        log.info("[GET /api/v1/posts/my] 반환 게시물 개수={}", response.size());
-        return ApiResponse.onSuccess(SuccessStatus._OK, response);
-    }
-
-    /**
-     * 전체 글 조회 (공개용, 인증 불필요)
-     */
+    /** 전체 조회 */
     @GetMapping
     public ResponseEntity<ApiResponse<List<PostResponseDto>>> getAllPosts() {
         List<PostResponseDto> list = postRepository
@@ -97,9 +40,87 @@ public class PostController {
                         .content(p.getContent())
                         .writer(p.getWriter())
                         .createdAt(p.getCreatedAt())
+                        .views(p.getViews())
+                        .likes(p.getLikes())
                         .build()
-                ).collect(Collectors.toList());
+                )
+                .collect(Collectors.toList());
 
         return ApiResponse.onSuccess(SuccessStatus._OK, list);
     }
+
+    /** 글 쓰기 */
+    @PostMapping
+    public ResponseEntity<ApiResponse<PostResponseDto>> create(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @RequestBody CreatePostRequest request
+    ) {
+        // --- 토큰에서 사용자 정보 추출 ---
+        String token = jwtUtil.getTokenFromHeader(authorizationHeader);
+        String userIdStr = jwtUtil.getUserIdFromToken(token);
+        UUID userId = UUID.fromString(userIdStr);
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다. userId=" + userId));
+
+        // --- 게시글 생성 및 저장 ---
+        Post post = Post.builder()
+                .title(request.getTitle())
+                .content(request.getContent())
+                .writer(user.getName())
+                .build();  // views, likes, createdAt 등은 @Builder.Default로 기본값 설정
+        postRepository.save(post);
+
+        // --- 응답 DTO 생성 ---
+        PostResponseDto dto = PostResponseDto.builder()
+                .id(post.getId())
+                .title(post.getTitle())
+                .content(post.getContent())
+                .writer(post.getWriter())
+                .createdAt(post.getCreatedAt())
+                .views(post.getViews())
+                .likes(post.getLikes())
+                .build();
+
+        return ApiResponse.onSuccess(SuccessStatus._CREATED, dto);
+    }
+
+    /** 상세 조회 (views++) */
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<PostResponseDto>> getPostById(
+            @PathVariable Long id
+    ) {
+        Post p = postRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다. id=" + id));
+
+        p.incrementViews();
+        postRepository.save(p);
+
+        PostResponseDto dto = PostResponseDto.builder()
+                .id(p.getId())
+                .title(p.getTitle())
+                .content(p.getContent())
+                .writer(p.getWriter())
+                .createdAt(p.getCreatedAt())
+                .views(p.getViews())
+                .likes(p.getLikes())
+                .build();
+
+        return ApiResponse.onSuccess(SuccessStatus._OK, dto);
+    }
+
+    /** 좋아요 증가 */
+    @PostMapping("/{id}/like")
+    public ResponseEntity<ApiResponse<Long>> likePost(
+            @PathVariable Long id
+    ) {
+        Post p = postRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다. id=" + id));
+
+        p.incrementLikes();
+        postRepository.save(p);
+
+        return ApiResponse.onSuccess(SuccessStatus._OK, p.getLikes());
+    }
+
+    // … (기존 getMyPosts 등) …
 }
