@@ -1,4 +1,6 @@
-import React from 'react';
+// src/pages/FreeBoard.js
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import {
   Paper,
   TableContainer,
@@ -8,16 +10,33 @@ import {
   TableCell,
   TableBody,
   TableSortLabel,
-  Typography
+  Typography,
+  Stack,
+  Pagination
 } from '@mui/material';
 
+const { protocol, hostname, port } = window.location;
+const API_BASE_URL =
+  (port && port !== '8080')
+    ? `${protocol}//${hostname}:8080`
+    : window.location.origin;
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: { 'Content-Type': 'application/json' }
+});
+
+const headCells = [
+  { id: 'title',     label: 'Title' },
+  { id: 'writer',    label: 'Writer' },
+  { id: 'createdAt', label: 'Date' },
+  { id: 'views',     label: 'Views', align: 'right' },
+  { id: 'likes',     label: 'Likes', align: 'right' }
+];
+
 function descendingComparator(a, b, orderBy) {
-  if (b[orderBy] < a[orderBy]) {
-    return -1;
-  }
-  if (b[orderBy] > a[orderBy]) {
-    return 1;
-  }
+  if (b[orderBy] < a[orderBy]) return -1;
+  if (b[orderBy] > a[orderBy]) return 1;
   return 0;
 }
 
@@ -27,105 +46,106 @@ function getComparator(order, orderBy) {
     : (a, b) => -descendingComparator(a, b, orderBy);
 }
 
-const FreeBoard = () => {
-  // 게임 관련 예시 더미 데이터
-  const rows = [
-    {
-      id: 45,
-      title: "신작 RPG '에픽 퀘스트' 리뷰: 스토리와 전투 시스템이 인상적",
-      author: "게이머A",
-      date: "2025-04-02",
-      views: 678,
-      likes: 34
-    },
-    {
-      id: 44,
-      title: "인디 게임 부활! 최근 주목할만한 소규모 게임들",
-      author: "게이머B",
-      date: "2025-04-01",
-      views: 512,
-      likes: 28
-    },
-    {
-      id: 43,
-      title: "이번 주 업데이트: 신규 던전과 버그 수정 안내",
-      author: "게이머C",
-      date: "2025-03-31",
-      views: 432,
-      likes: 22
-    },
-    {
-      id: 42,
-      title: "PvP 모드 꿀팁: 승리하는 전략 공유합니다",
-      author: "게이머D",
-      date: "2025-03-30",
-      views: 390,
-      likes: 19
-    },
-    {
-      id: 41,
-      title: "게임 커뮤니티 이벤트 후기 및 자유 토론",
-      author: "게이머E",
-      date: "2025-03-29",
-      views: 321,
-      likes: 15
-    }
-  ];
+function stableSort(array, comparator) {
+  const stabilized = array.map((el, idx) => [el, idx]);
+  stabilized.sort((a, b) => {
+    const cmp = comparator(a[0], b[0]);
+    return cmp !== 0 ? cmp : a[1] - b[1];
+  });
+  return stabilized.map(el => el[0]);
+}
 
-  // 헤더 셀 정의 (id는 실제 데이터의 키값)
-  const headCells = [
-    { id: 'id', label: '번호', numeric: true },
-    { id: 'title', label: '제목', numeric: false },
-    { id: 'author', label: '글쓴이', numeric: false },
-    { id: 'date', label: '날짜', numeric: false },
-    { id: 'views', label: '조회', numeric: true },
-    { id: 'likes', label: '추천', numeric: true },
-  ];
+export default function FreeBoard() {
+  console.log('🔥 FreeBoard 렌더', { time: new Date().toLocaleTimeString() });
 
-  const [order, setOrder] = React.useState('asc');
-  const [orderBy, setOrderBy] = React.useState('id');
+  const [order,   setOrder]   = useState('asc');
+  const [orderBy, setOrderBy] = useState('createdAt');
+  const [rows,    setRows]    = useState([]);
 
-  const handleRequestSort = (property) => {
-    const isAsc = orderBy === property && order === 'asc';
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 10;
+  const pageCount   = Math.ceil(rows.length / rowsPerPage);
+
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+
+    console.log('▶︎ API 호출 시작');
+    api.get('/api/v1/posts', {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    })
+    .then(res => {
+      console.log('✅ /api/v1/posts 응답 payload:', res.data.payload);
+      const data = res.data.payload || [];
+      const mapped = data.map(p => ({
+        title:     p.title,
+        writer:    p.writer,
+        createdAt: new Date(p.createdAt).toLocaleString(),
+        views:     '-',
+        likes:     '-'
+      }));
+      console.log('→ mapped rows 길이:', mapped.length);
+      setRows(mapped);
+    })
+    .catch(err => {
+      console.error('❌ [FreeBoard] API 에러:', err);
+    });
+  }, []);
+
+  const handleRequestSort = (e, prop) => {
+    const isAsc = orderBy === prop && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
+    setOrderBy(prop);
   };
 
-  const sortedRows = rows.slice().sort(getComparator(order, orderBy));
+  const handleChangePage = (e, value) => {
+    setPage(value);
+  };
+
+  const sorted = stableSort(rows, getComparator(order, orderBy));
+  const pagedRows = sorted.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+
+  console.log({
+    rowsLength:      rows.length,
+    page,
+    rowsPerPage,
+    pageCount,
+    pagedRowsLength: pagedRows.length
+  });
 
   return (
     <div>
-      <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-        게임 자유 게시판
+      <Typography variant="h4" gutterBottom>
+        자유 게시판
       </Typography>
+
       <TableContainer component={Paper}>
         <Table>
-          <TableHead sx={{ backgroundColor: '#f3f3f3' }}>
+          <TableHead>
             <TableRow>
-              {headCells.map((headCell) => (
+              {headCells.map(cell => (
                 <TableCell
-                  key={headCell.id}
-                  align={headCell.numeric ? 'right' : 'left'}
-                  sx={{ fontWeight: 'bold' }}
+                  key={cell.id}
+                  align={cell.align || 'left'}
+                  sortDirection={orderBy === cell.id ? order : false}
                 >
                   <TableSortLabel
-                    active={orderBy === headCell.id}
-                    direction={orderBy === headCell.id ? order : 'asc'}
-                    onClick={() => handleRequestSort(headCell.id)}
+                    active={orderBy === cell.id}
+                    direction={orderBy === cell.id ? order : 'asc'}
+                    onClick={e => handleRequestSort(e, cell.id)}
                   >
-                    {headCell.label}
+                    {cell.label}
                   </TableSortLabel>
                 </TableCell>
               ))}
             </TableRow>
           </TableHead>
+
           <TableBody>
-            {sortedRows.map((row) => (
-              <TableRow key={row.id} hover>
-                <TableCell align="right">{row.id}</TableCell>
+            {pagedRows.map((row, idx) => (
+              <TableRow key={idx}>
                 <TableCell>{row.title}</TableCell>
-                <TableCell>{row.author}</TableCell>
-                <TableCell>{row.date}</TableCell>
+                <TableCell>{row.writer}</TableCell>
+                <TableCell>{row.createdAt}</TableCell>
                 <TableCell align="right">{row.views}</TableCell>
                 <TableCell align="right">{row.likes}</TableCell>
               </TableRow>
@@ -133,8 +153,18 @@ const FreeBoard = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <Stack spacing={2} alignItems="center" sx={{ mt: 2 }}>
+        <Pagination
+          count={pageCount}
+          page={page}
+          onChange={handleChangePage}
+          siblingCount={1}
+          boundaryCount={1}
+          showFirstButton
+          showLastButton
+        />
+      </Stack>
     </div>
   );
-};
-
-export default FreeBoard;
+}
