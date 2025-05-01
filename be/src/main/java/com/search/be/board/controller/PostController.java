@@ -8,6 +8,8 @@ import com.search.be.board.repository.PostRepository;
 import com.search.be.login.api.JwtUtil;
 import com.search.be.login.dto.ApiResponse;
 import com.search.be.login.dto.SuccessStatus;
+import com.search.be.login.repository.User;
+import com.search.be.login.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -25,28 +28,31 @@ public class PostController {
 
     private final PostRepository postRepository;
     private final JwtUtil jwtUtil;
+    private final UserRepository userRepository;
 
     @PostMapping
     public ResponseEntity<ApiResponse<Post>> createPost(
             @RequestHeader("Authorization") String authorizationHeader,
-            @RequestHeader("X-User-Name") String writer,
             @RequestBody CreatePostRequest request
     ) {
-        // 토큰 유효성 체크
+        // 1) 헤더에서 토큰만 추출
         String token = jwtUtil.getTokenFromHeader(authorizationHeader);
-        jwtUtil.getUserIdFromToken(token);
+        // 2) 토큰 → userId → User 조회
+        UUID userUuid = UUID.fromString(jwtUtil.getUserIdFromToken(token));
+        User user = userRepository.findByUserId(userUuid)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
+        // 3) Post 생성
         Post post = Post.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
-                .writer(writer)
+                .writer(user.getName())       // 이제 null 아님
                 .createdAt(LocalDateTime.now())
                 .build();
         postRepository.save(post);
 
         return ApiResponse.onSuccess(SuccessStatus._CREATED, post);
     }
-
     /**
      * 내 글만 조회 (인증 필요)
      */
