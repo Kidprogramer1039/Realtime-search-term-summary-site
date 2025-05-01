@@ -1,6 +1,7 @@
 // src/pages/FreeBoard.js
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import {
   Paper,
   TableContainer,
@@ -12,8 +13,10 @@ import {
   TableSortLabel,
   Typography,
   Stack,
-  Pagination
+  Pagination,
+  Fab
 } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 
 const { protocol, hostname, port } = window.location;
 const API_BASE_URL =
@@ -21,10 +24,7 @@ const API_BASE_URL =
     ? `${protocol}//${hostname}:8080`
     : window.location.origin;
 
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: { 'Content-Type': 'application/json' }
-});
+const api = axios.create({ baseURL: API_BASE_URL });
 
 const headCells = [
   { id: 'title',     label: 'Title' },
@@ -34,89 +34,47 @@ const headCells = [
   { id: 'likes',     label: 'Likes', align: 'right' }
 ];
 
-function descendingComparator(a, b, orderBy) {
-  if (b[orderBy] < a[orderBy]) return -1;
-  if (b[orderBy] > a[orderBy]) return 1;
-  return 0;
-}
-
-function getComparator(order, orderBy) {
-  return order === 'desc'
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
-}
-
-function stableSort(array, comparator) {
-  const stabilized = array.map((el, idx) => [el, idx]);
-  stabilized.sort((a, b) => {
-    const cmp = comparator(a[0], b[0]);
-    return cmp !== 0 ? cmp : a[1] - b[1];
-  });
-  return stabilized.map(el => el[0]);
-}
-
 export default function FreeBoard() {
-  console.log('🔥 FreeBoard 렌더', { time: new Date().toLocaleTimeString() });
-
+  const navigate = useNavigate();
   const [order,   setOrder]   = useState('asc');
   const [orderBy, setOrderBy] = useState('createdAt');
   const [rows,    setRows]    = useState([]);
-
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
-  const pageCount   = Math.ceil(rows.length / rowsPerPage);
+  const pageCount = Math.ceil(rows.length / rowsPerPage);
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
-
-    console.log('▶︎ API 호출 시작');
-    api.get('/api/v1/posts', {
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
-    })
-    .then(res => {
-      console.log('✅ /api/v1/posts 응답 payload:', res.data.payload);
-      const data = res.data.payload || [];
-      const mapped = data.map(p => ({
-        title:     p.title,
-        writer:    p.writer,
-        createdAt: new Date(p.createdAt).toLocaleString(),
-        views:     '-',
-        likes:     '-'
-      }));
-      console.log('→ mapped rows 길이:', mapped.length);
-      setRows(mapped);
-    })
-    .catch(err => {
-      console.error('❌ [FreeBoard] API 에러:', err);
-    });
+    api.get('/api/v1/posts')
+      .then(res => {
+        const data = res.data.payload || [];
+        setRows(data.map(p => ({
+          id:        p.id,
+          title:     p.title,
+          writer:    p.writer,
+          createdAt: new Date(p.createdAt).toLocaleString(),
+          views:     p.views ?? 0,
+          likes:     p.likes ?? 0
+        })));
+      })
+      .catch(err => console.error(err));
   }, []);
 
-  const handleRequestSort = (e, prop) => {
+  const handleRequestSort = (_, prop) => {
     const isAsc = orderBy === prop && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(prop);
   };
+  const handleChangePage = (_, v) => setPage(v);
 
-  const handleChangePage = (e, value) => {
-    setPage(value);
-  };
-
-  const sorted = stableSort(rows, getComparator(order, orderBy));
-  const pagedRows = sorted.slice((page - 1) * rowsPerPage, page * rowsPerPage);
-
-  console.log({
-    rowsLength:      rows.length,
-    page,
-    rowsPerPage,
-    pageCount,
-    pagedRowsLength: pagedRows.length
+  const sorted = rows.slice().sort((a, b) => {
+    const cmp = a[orderBy] < b[orderBy] ? -1 : a[orderBy] > b[orderBy] ? 1 : 0;
+    return order === 'asc' ? cmp : -cmp;
   });
+  const paged = sorted.slice((page - 1) * rowsPerPage, page * rowsPerPage);
 
   return (
-    <div>
-      <Typography variant="h4" gutterBottom>
-        자유 게시판
-      </Typography>
+    <div style={{ position: 'relative', paddingBottom: 80 }}>
+      <Typography variant="h4" gutterBottom>자유 게시판</Typography>
 
       <TableContainer component={Paper}>
         <Table>
@@ -141,8 +99,13 @@ export default function FreeBoard() {
           </TableHead>
 
           <TableBody>
-            {pagedRows.map((row, idx) => (
-              <TableRow key={idx}>
+            {paged.map(row => (
+              <TableRow
+                key={row.id}
+                hover
+                sx={{ cursor: 'pointer' }}
+                onClick={() => navigate(`/free/${row.id}`)}
+              >
                 <TableCell>{row.title}</TableCell>
                 <TableCell>{row.writer}</TableCell>
                 <TableCell>{row.createdAt}</TableCell>
@@ -159,12 +122,18 @@ export default function FreeBoard() {
           count={pageCount}
           page={page}
           onChange={handleChangePage}
-          siblingCount={1}
-          boundaryCount={1}
-          showFirstButton
-          showLastButton
+          showFirstButton showLastButton
         />
       </Stack>
+
+      <Fab
+        color="primary"
+        aria-label="add"
+        onClick={() => navigate('/free/write')}
+        sx={{ position: 'fixed', bottom: 24, right: 24 }}
+      >
+        <AddIcon />
+      </Fab>
     </div>
   );
 }

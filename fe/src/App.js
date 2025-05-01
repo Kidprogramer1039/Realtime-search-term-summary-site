@@ -9,6 +9,8 @@ import InfoBoard        from './pages/InfoBoard';
 import FreeBoard        from './pages/FreeBoard';
 import CommunityBoard   from './pages/CommunityBoard';
 import LoginCallback    from './pages/LoginCallback';
+import FreeWrite from './pages/FreeWrite';
+import FreeDetail     from './pages/FreeDetail';
 import './App.css';
 
 function App() {
@@ -36,6 +38,8 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/info" element={<InfoBoard />} />
             <Route path="/free" element={<FreeBoard />} />
+            <Route path="/free/write" element={<FreeWrite />} />
+            <Route path="/free/:id" element={<FreeDetail />} />
             <Route path="/community" element={<CommunityBoard />} />
           </Routes>
         </div>
