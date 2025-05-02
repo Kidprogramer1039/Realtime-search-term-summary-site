@@ -1,10 +1,8 @@
-// src/main/java/com/search/be/community/controller/CommunityPostController.java
 package com.search.be.community.controller;
 
 import com.search.be.board.dto.CreatePostRequest;
 import com.search.be.board.dto.PostResponseDto;
-import com.search.be.community.entity.CommunityPost;
-import com.search.be.community.repository.CommunityPostRepository;
+import com.search.be.community.service.CommunityPostService;
 import com.search.be.login.api.JwtUtil;
 import com.search.be.login.dto.ApiResponse;
 import com.search.be.login.dto.SuccessStatus;
@@ -17,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -25,58 +22,67 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CommunityPostController {
 
-    private final CommunityPostRepository repo;
+    private final CommunityPostService service;
     private final JwtUtil jwtUtil;
     private final UserRepository userRepo;
 
+    /* 목록 */
     @GetMapping
-    public ResponseEntity<ApiResponse<List<PostResponseDto>>> list(){
-        List<PostResponseDto> list = repo.findAllByOrderByCreatedAtDesc()
-                .stream().map(this::toDto).collect(Collectors.toList());
-        return ApiResponse.onSuccess(SuccessStatus._OK,list);
+    public ResponseEntity<ApiResponse<List<PostResponseDto>>> list() {
+        return ApiResponse.onSuccess(
+                SuccessStatus._OK,
+                service.getAll()
+        );
     }
 
+    /* 글쓰기 */
     @PostMapping
     public ResponseEntity<ApiResponse<PostResponseDto>> write(
             @RequestHeader("Authorization") String auth,
-            @RequestBody CreatePostRequest req){
+            @RequestBody CreatePostRequest req) {
 
         String token = jwtUtil.getTokenFromHeader(auth);
-        String idStr = jwtUtil.getUserIdFromToken(token);
-        UUID   uuid  = UUID.fromString(idStr);
-        User user = userRepo.findByUserId(uuid)
-                .orElseThrow(()->new IllegalArgumentException("no user"));
+        String uid   = jwtUtil.getUserIdFromToken(token);
+        User user = userRepo.findByUserId(UUID.fromString(uid))
+                .orElseThrow(() -> new IllegalArgumentException("유저 없음"));
 
-        CommunityPost saved = repo.save(
-                CommunityPost.builder()
-                        .title(req.getTitle())
-                        .content(req.getContent())
-                        .writer(user.getName())
-                        .build()
+        return ApiResponse.onSuccess(
+                SuccessStatus._CREATED,
+                service.write(req, user.getName())
         );
-        return ApiResponse.onSuccess(SuccessStatus._CREATED,toDto(saved));
     }
 
+    /* 상세 */
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<PostResponseDto>> read(@PathVariable Long id){
-        CommunityPost p = repo.findById(id)
-                .orElseThrow(()->new IllegalArgumentException("no post"));
-        p.incrementViews(); repo.save(p);
-        return ApiResponse.onSuccess(SuccessStatus._OK,toDto(p));
+    public ResponseEntity<ApiResponse<PostResponseDto>> read(@PathVariable Long id) {
+        return ApiResponse.onSuccess(
+                SuccessStatus._OK,
+                service.getById(id)
+        );
     }
 
+    /* 좋아요 */
     @PostMapping("/{id}/like")
-    public ResponseEntity<ApiResponse<Long>> like(@PathVariable Long id){
-        CommunityPost p = repo.findById(id)
-                .orElseThrow(()->new IllegalArgumentException("no post"));
-        p.incrementLikes(); repo.save(p);
-        return ApiResponse.onSuccess(SuccessStatus._OK,p.getLikes());
+    public ResponseEntity<ApiResponse<Long>> like(@PathVariable Long id) {
+        return ApiResponse.onSuccess(
+                SuccessStatus._OK,
+                service.like(id)
+        );
     }
 
-    private PostResponseDto toDto(CommunityPost p){
-        return PostResponseDto.builder()
-                .id(p.getId()).title(p.getTitle()).content(p.getContent())
-                .writer(p.getWriter()).createdAt(p.getCreatedAt())
-                .views(p.getViews()).likes(p.getLikes()).build();
+    /* 내가 쓴 글 */
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<List<PostResponseDto>>> myPosts(
+            @RequestHeader("Authorization") String auth) {
+
+        String token = jwtUtil.getTokenFromHeader(auth);
+        String uid   = jwtUtil.getUserIdFromToken(token);
+        User user = userRepo.findByUserId(UUID.fromString(uid))
+                .orElseThrow(() -> new IllegalArgumentException("유저 없음"));
+
+        return ApiResponse.onSuccess(
+                SuccessStatus._OK,
+                service.getMine(user.getName())
+        );
     }
 }
