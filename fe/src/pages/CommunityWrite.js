@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Paper,Stack,TextField,Button,Typography } from '@mui/material';
 import axios from 'axios';
 
+const API = `${window.location.protocol}//${window.location.hostname}:8080`;
+
 export default function CommunityWrite(){
   const nav=useNavigate();
   const [title,setTitle]=useState('');
@@ -12,7 +14,7 @@ export default function CommunityWrite(){
     e.preventDefault();
     if(!title.trim()||!content.trim()){alert('제목/내용 입력');return;}
 
-    axios.post('/api/v1/community-posts',{title,content})
+    axios.post(`${API}/api/v1/community-posts`,{title,content})
          .then(()=>nav('/community'))
          .catch(()=>alert('401 - 로그인 토큰 확인'));
   };
