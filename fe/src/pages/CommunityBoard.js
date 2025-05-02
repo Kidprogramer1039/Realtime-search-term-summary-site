@@ -1,139 +1,119 @@
-import React from 'react';
+// src/pages/community/CommunityBoard.js
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-  Paper,
-  TableContainer,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  TableSortLabel,
-  Typography
+  Paper, TableContainer, Table, TableHead, TableRow,
+  TableCell, TableBody, TableSortLabel, Typography,
+  Stack, Pagination, Fab,
 } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import axios from 'axios';
 
-function descendingComparator(a, b, orderBy) {
-  if (b[orderBy] < a[orderBy]) {
-    return -1;
-  }
-  if (b[orderBy] > a[orderBy]) {
-    return 1;
-  }
-  return 0;
-}
+/* ───────── api 인스턴스 (FreeBoard 방식 그대로) ───────── */
+const { protocol, hostname, port } = window.location;
+// const API_BASE_URL =
+//   port && port !== '8080'
+//     ? `${protocol}//${hostname}:8080`
+    // : window.location.origin;
+    const API_BASE_URL = `${protocol}//${hostname}:8080`;
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: { 'Content-Type': 'application/json' },
+});
 
-function getComparator(order, orderBy) {
-  return order === 'desc'
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
-}
+/* ───────── 테이블 헤더 정의 ───────── */
+const head = [
+  { id: 'title',     label: 'Title'  },
+  { id: 'writer',    label: 'Writer' },
+  { id: 'createdAt', label: 'Date'   },
+  { id: 'views',     label: 'Views', align: 'right' },
+  { id: 'likes',     label: 'Likes', align: 'right' },
+];
 
-const CommunityBoard = () => {
-  // 게임 관련 예시 더미 데이터 (커뮤니티 토론/이벤트)
-  const rows = [
-    {
-      id: 85,
-      title: "[토론] FPS 게임에서 전략이 장비보다 중요한 이유는?",
-      author: "게이머F",
-      date: "2025-04-03",
-      views: 789,
-      likes: 40
-    },
-    {
-      id: 84,
-      title: "[모임] 이번 주말 게임 LAN 파티 참가자 모집",
-      author: "게이머G",
-      date: "2025-04-02",
-      views: 653,
-      likes: 30
-    },
-    {
-      id: 83,
-      title: "[이벤트] e스포츠 대회 현장 스케치 및 후기",
-      author: "게이머H",
-      date: "2025-04-01",
-      views: 540,
-      likes: 35
-    },
-    {
-      id: 82,
-      title: "[공지] 커뮤니티 규칙 개정 안내 및 이벤트 소식",
-      author: "운영자",
-      date: "2025-03-31",
-      views: 500,
-      likes: 25
-    },
-    {
-      id: 81,
-      title: "[추천] 올해 최고의 게임 OST TOP 5",
-      author: "게이머I",
-      date: "2025-03-30",
-      views: 476,
-      likes: 29
-    }
-  ];
+/* ───────── 정렬 유틸 ───────── */
+const desc = (a, b, o) => (b[o] < a[o] ? -1 : b[o] > a[o] ? 1 : 0);
+const getCmp = (order, by) =>
+  order === 'desc'
+    ? (a, b) => desc(a, b, by)
+    : (a, b) => -desc(a, b, by);
 
-  const headCells = [
-    { id: 'id', label: '번호', numeric: true },
-    { id: 'title', label: '제목', numeric: false },
-    { id: 'author', label: '글쓴이', numeric: false },
-    { id: 'date', label: '날짜', numeric: false },
-    { id: 'views', label: '조회', numeric: true },
-    { id: 'likes', label: '추천', numeric: true },
-  ];
+export default function CommunityBoard() {
+  const nav = useNavigate();
+  const [rows,    setRows]    = useState([]);
+  const [order,   setOrder]   = useState('desc');
+  const [orderBy, setOrderBy] = useState('createdAt');
+  const [page,    setPage]    = useState(1);
+  const per = 10;
 
-  const [order, setOrder] = React.useState('asc');
-  const [orderBy, setOrderBy] = React.useState('id');
+  useEffect(() => {
+    api.get('/api/v1/community-posts')
+       .then(res => {
+         const arr = Array.isArray(res.data) ? res.data : res.data.payload;
+         setRows(arr.map(p => ({
+           id: p.id,
+           title: p.title,
+           writer: p.writer,
+           createdAt: new Date(p.createdAt).toLocaleString(),
+           views: p.views,
+           likes: p.likes,
+         })));
+       });
+  }, []);
 
-  const handleRequestSort = (property) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
-  };
-
-  const sortedRows = rows.slice().sort(getComparator(order, orderBy));
+  const sorted = rows.slice().sort(getCmp(order, orderBy));
+  const shown  = sorted.slice((page - 1) * per, page * per);
 
   return (
-    <div>
-      <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-        게임 커뮤니티 게시판
-      </Typography>
+    <div style={{ position: 'relative', paddingBottom: 80 }}>
+      <Typography variant="h4" gutterBottom>커뮤니티 게시판</Typography>
+
       <TableContainer component={Paper}>
         <Table>
-          <TableHead sx={{ backgroundColor: '#f3f3f3' }}>
+          <TableHead>
             <TableRow>
-              {headCells.map((headCell) => (
-                <TableCell
-                  key={headCell.id}
-                  align={headCell.numeric ? 'right' : 'left'}
-                  sx={{ fontWeight: 'bold' }}
-                >
+              {head.map(h => (
+                <TableCell key={h.id} align={h.align || 'left'}
+                           sortDirection={orderBy === h.id ? order : false}>
                   <TableSortLabel
-                    active={orderBy === headCell.id}
-                    direction={orderBy === headCell.id ? order : 'asc'}
-                    onClick={() => handleRequestSort(headCell.id)}
+                    active={orderBy === h.id}
+                    direction={orderBy === h.id ? order : 'asc'}
+                    onClick={() => { setOrder(order === 'asc' ? 'desc' : 'asc'); setOrderBy(h.id); }}
                   >
-                    {headCell.label}
+                    {h.label}
                   </TableSortLabel>
                 </TableCell>
               ))}
             </TableRow>
           </TableHead>
+
           <TableBody>
-            {sortedRows.map((row) => (
-              <TableRow key={row.id} hover>
-                <TableCell align="right">{row.id}</TableCell>
-                <TableCell>{row.title}</TableCell>
-                <TableCell>{row.author}</TableCell>
-                <TableCell>{row.date}</TableCell>
-                <TableCell align="right">{row.views}</TableCell>
-                <TableCell align="right">{row.likes}</TableCell>
+            {shown.map(r => (
+              <TableRow key={r.id} hover sx={{ cursor: 'pointer' }}
+                        onClick={() => nav(`/community/${r.id}`)}>
+                <TableCell>{r.title}</TableCell>
+                <TableCell>{r.writer}</TableCell>
+                <TableCell>{r.createdAt}</TableCell>
+                <TableCell align="right">{r.views}</TableCell>
+                <TableCell align="right">{r.likes}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
+
+      <Stack sx={{ my: 2 }} alignItems="center">
+        <Pagination
+          count={Math.max(1, Math.ceil(rows.length / per))}
+          page={page}
+          onChange={(_, v) => setPage(v)}
+        />
+      </Stack>
+
+      <Fab color="primary"
+           sx={{ position: 'absolute', bottom: 16, right: 16 }}
+           onClick={() => nav('/community/write')}>
+        <AddIcon />
+      </Fab>
     </div>
   );
-};
-
-export default CommunityBoard;
+}
