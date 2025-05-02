@@ -57,7 +57,7 @@ function Navbar() {
           sx={{ flex: 1, minHeight: '56px' }}
         >
           <Tab label="홈" sx={{ fontWeight: 'bold', minHeight: '56px' }} />
-          <Tab label="정보게시판" sx={{ fontWeight: 'bold', minHeight: '56px' }} />
+          <Tab label="랭킹" sx={{ fontWeight: 'bold', minHeight: '56px' }} />
           <Tab label="자유게시판" sx={{ fontWeight: 'bold', minHeight: '56px' }} />
           <Tab label="커뮤니티게시판" sx={{ fontWeight: 'bold', minHeight: '56px' }} />
         </Tabs>
