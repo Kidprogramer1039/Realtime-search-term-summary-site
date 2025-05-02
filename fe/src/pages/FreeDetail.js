@@ -1,99 +1,95 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate }     from 'react-router-dom';
-import axios                           from 'axios';
+import { useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
 import {
-  Container,
-  Paper,
-  Typography,
-  Stack,
-  IconButton,
-  Button
+  Card, CardHeader, CardContent, CardActions,
+  Typography, IconButton, Divider, Stack, Button
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ThumbUpIcon   from '@mui/icons-material/ThumbUp';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
+import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 
-const { protocol, hostname, port } = window.location;
-// const API_BASE_URL =
-//   (port && port !== '8080')
-//     ? `${protocol}//${hostname}:8080`
-//     : window.location.origin;
-
-const API_BASE_URL = `${protocol}//${hostname}:8080`; 
+const { protocol, hostname } = window.location;
+const API_BASE_URL = `${protocol}//${hostname}:8080`;
+const api = axios.create({ baseURL: API_BASE_URL });
 
 export default function FreeDetail() {
   const { id } = useParams();
-  const navigate = useNavigate();
+  const nav = useNavigate();
+  const [post, setPost] = useState(null);
 
-  const [post,  setPost]  = useState(null);
-  const [views, setViews] = useState(0);
-  const [likes, setLikes] = useState(0);
-
+  /* ───────── 데이터 로드 ───────── */
   useEffect(() => {
-    axios.get(`${API_BASE_URL}/api/v1/posts/${id}`)
-      .then(res => {
-        const p = res.data.payload;
-        setPost(p);
-        setViews(p.views);
-        setLikes(p.likes);
-      })
-      .catch(err => console.error(err));
-  }, [id]);
+    api.get(`/api/v1/posts/${id}`)
+       .then(r => {
+         const p = r.data.payload || r.data;
+         setPost({ ...p, createdAt: new Date(p.createdAt).toLocaleString() });
+       })
+       .catch(() => nav(-1));
+  }, [id, nav]);
 
+  /* 좋아요 */
   const handleLike = () => {
-    axios.post(`${API_BASE_URL}/api/v1/posts/${id}/like`)
-      .then(res => setLikes(res.data.payload))
-      .catch(err => console.error(err));
+    api.post(`/api/v1/posts/${id}/like`).then(() => {
+      setPost(p => ({ ...p, likes: (p.likes ?? 0) + 1 }));
+    });
   };
 
-  if (!post) {
-    return (
-      <Container maxWidth="md" sx={{ mt: 4 }}>
-        <Typography>게시글 로딩 중…</Typography>
-      </Container>
-    );
-  }
+  if (!post) return null;
 
+  /* ───────── UI ───────── */
   return (
-    <Container maxWidth="md" sx={{ mt: 4 }}>
-      <IconButton onClick={() => navigate(-1)}>
-        <ArrowBackIcon /> 뒤로
-      </IconButton>
+    <Card sx={{ maxWidth: '100%', p: 0, mt: 3 }}>
+      {/* 제목 · 메타 */}
+      <CardHeader
+        title={<Typography variant="h4" fontWeight={700}>{post.title}</Typography>}
+        subheader={
+          <Stack
+            direction="row"
+            spacing={1}
+            divider={<Divider flexItem orientation="vertical" />}
+            sx={{ mt: 0.5 }}
+          >
+            <span>{post.writer}</span>
+            <span>{post.createdAt}</span>
+            <Stack direction="row" spacing={0.5}>
+              <VisibilityIcon fontSize="small" />
+              {post.views}
+            </Stack>
+            <Stack direction="row" spacing={0.5}>
+              <ThumbUpAltIcon fontSize="small" />
+              {post.likes}
+            </Stack>
+          </Stack>
+        }
+        sx={{ pb: 1 }}
+      />
+      <Divider />
 
-      <Paper sx={{ p: 4, mt: 2 }}>
-        <Typography variant="h4" gutterBottom>
-          {post.title}
-        </Typography>
-
-        <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
-          <Typography variant="subtitle2">작성자: {post.writer}</Typography>
-          <Typography variant="subtitle2">
-            작성일: {new Date(post.createdAt).toLocaleString()}
-          </Typography>
-        </Stack>
-
-        <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', mb: 4 }}>
+      {/* 본문 */}
+      <CardContent sx={{ py: 3 }}>
+        <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
           {post.content}
         </Typography>
+      </CardContent>
 
-        <Stack direction="row" spacing={4} alignItems="center">
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <VisibilityIcon /> <Typography>{views}</Typography>
-          </Stack>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <IconButton onClick={handleLike}>
-              <ThumbUpIcon />
-            </IconButton>
-            <Typography>{likes}</Typography>
-          </Stack>
-        </Stack>
-
-        <Stack direction="row" spacing={2} sx={{ mt: 4 }}>
-          <Button variant="contained" onClick={() => navigate('/free')}>
-            목록으로
-          </Button>
-        </Stack>
-      </Paper>
-    </Container>
+      {/* 액션 버튼 */}
+      <CardActions sx={{ px: 3, pb: 3, justifyContent: 'space-between' }}>
+        <Button
+          startIcon={<ArrowBackIosNewIcon />}
+          variant="outlined"
+          onClick={() => nav('/free')}
+        >
+          목록으로
+        </Button>
+        <Button
+          startIcon={<ThumbUpAltIcon />}
+          variant="contained"
+          onClick={handleLike}
+        >
+          좋아요&nbsp;{post.likes}
+        </Button>
+      </CardActions>
+    </Card>
   );
 }
