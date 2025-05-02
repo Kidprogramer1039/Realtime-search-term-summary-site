@@ -1,48 +1,95 @@
-import React,{useEffect,useState} from 'react';
-import { useParams,useNavigate } from 'react-router-dom';
-import { Paper,Typography,Divider,Stack,Button } from '@mui/material';
+// src/pages/CommunityDetail.js
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import {
+  Card, CardHeader, CardContent, CardActions,
+  Typography, IconButton, Divider, Stack, Button
+} from '@mui/material';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
+import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 
-const API = `${window.location.protocol}//${window.location.hostname}:8080`;
+/* 백엔드 고정 8080 */
+const { protocol, hostname } = window.location;
+const API_BASE_URL = `${protocol}//${hostname}:8080`;
+const api = axios.create({ baseURL: API_BASE_URL });
 
-export default function CommunityDetail(){
-  const {id}=useParams(); const nav=useNavigate();
-  const [post,setPost]=useState(null);
+export default function CommunityDetail() {
+  const { id } = useParams();
+  const nav    = useNavigate();
+  const [post, setPost] = useState(null);
 
-  useEffect(()=>{
-    axios.get(`${API}/api/v1/community-posts/${id}`)
-         .then(r=>{
-           const p=r.data.payload||r.data;
-           setPost({...p,createdAt:new Date(p.createdAt).toLocaleString()});
-         })
-         .catch(()=>{alert('글이 없습니다');nav('/community');});
-  },[id,nav]);
+  /* ── 데이터 로드 ── */
+  useEffect(() => {
+    api.get(`/api/v1/community-posts/${id}`)
+       .then(res => {
+         const p = res.data.payload || res.data;
+         setPost({ ...p, createdAt: new Date(p.createdAt).toLocaleString() });
+       })
+       .catch(() => nav(-1));
+  }, [id, nav]);
 
-  const like=()=>{
-    axios.post(`${API}/api/v1/community-posts/${id}/like`)
-         .then(r=>setPost(p=>({...p,likes:r.data.payload||r.data})));
+  /* 좋아요 */
+  const handleLike = () => {
+    api.post(`/api/v1/community-posts/${id}/like`)
+       .then(() => setPost(p => ({ ...p, likes: (p.likes ?? 0) + 1 })));
   };
 
-  if(!post) return null;
+  if (!post) return null;
 
-  return(
-    <Paper sx={{p:3,maxWidth:800,mx:'auto'}}>
-      <Typography variant="h4" gutterBottom>{post.title}</Typography>
-      <Stack direction="row" spacing={2}
-             divider={<Divider flexItem orientation="vertical"/>}
-             sx={{mb:2,color:'text.secondary'}}>
-        <span>{post.writer}</span>
-        <span>{post.createdAt}</span>
-        <span>조회 {post.views}</span>
-        <span>좋아요 {post.likes}</span>
-      </Stack>
+  return (
+    <Card sx={{ maxWidth: '100%', p: 0, mt: 3 }}>
+      {/* 제목 + 메타정보 */}
+      <CardHeader
+        title={<Typography variant="h4" fontWeight={700}>{post.title}</Typography>}
+        subheader={
+          <Stack
+            direction="row"
+            spacing={1}
+            divider={<Divider flexItem orientation="vertical" />}
+            sx={{ mt: 0.5 }}
+          >
+            <span>{post.writer}</span>
+            <span>{post.createdAt}</span>
+            <Stack direction="row" spacing={0.5}>
+              <VisibilityIcon fontSize="small" />
+              {post.views}
+            </Stack>
+            <Stack direction="row" spacing={0.5}>
+              <ThumbUpAltIcon fontSize="small" />
+              {post.likes}
+            </Stack>
+          </Stack>
+        }
+        sx={{ pb: 1 }}
+      />
+      <Divider />
 
-      <Typography sx={{whiteSpace:'pre-wrap'}}>{post.content}</Typography>
+      {/* 본문 */}
+      <CardContent sx={{ py: 3 }}>
+        <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+          {post.content}
+        </Typography>
+      </CardContent>
 
-      <Stack direction="row" spacing={2} sx={{mt:3}}>
-        <Button variant="contained" onClick={like}>좋아요</Button>
-        <Button variant="outlined"  onClick={()=>nav('/community')}>목록</Button>
-      </Stack>
-    </Paper>
+      {/* 액션 영역 */}
+      <CardActions sx={{ px: 3, pb: 3, justifyContent: 'space-between' }}>
+        <Button
+          startIcon={<ArrowBackIosNewIcon />}
+          variant="outlined"
+          onClick={() => nav('/community')}
+        >
+          목록으로
+        </Button>
+        <Button
+          startIcon={<ThumbUpAltIcon />}
+          variant="contained"
+          onClick={handleLike}
+        >
+          좋아요&nbsp;{post.likes}
+        </Button>
+      </CardActions>
+    </Card>
   );
 }
