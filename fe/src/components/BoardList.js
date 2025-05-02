@@ -11,7 +11,7 @@ import ListItemText from '@mui/material/ListItemText';
 const BoardList = () => {
   const navigate = useNavigate();
   const boards = [
-    { id: 1, title: '정보 게시판', path: '/info' },
+    { id: 1, title: '랭킹', path: '/info' },
     { id: 2, title: '자유 게시판', path: '/free' },
     { id: 3, title: '커뮤니티게시판', path: '/community' },
   ];
