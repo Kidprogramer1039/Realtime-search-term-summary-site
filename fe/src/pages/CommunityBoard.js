@@ -6,9 +6,12 @@ import {
   Stack, Pagination, Fab
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import axios from 'axios';                 // ← 전역 axios 그대로 사용
+import axios from 'axios';
 
-/* ─── 테이블 헤더 ─── */
+/* ★ 무조건 8080 포트 붙여서 보낼 BASE URL */
+const API = `${window.location.protocol}//${window.location.hostname}:8080`;
+
+/* 헤더 */
 const head = [
   { id:'title',     label:'Title'  },
   { id:'writer',    label:'Writer' },
@@ -17,10 +20,11 @@ const head = [
   { id:'likes',     label:'Likes', align:'right' }
 ];
 
-/* ─── 정렬 유틸 ─── */
+/* 정렬 */
 const desc = (a,b,o)=> b[o]<a[o]? -1 : b[o]>a[o]? 1 : 0;
-const cmp  = (order,by)=>
-  order==='desc' ? (a,b)=>desc(a,b,by) : (a,b)=>-desc(a,b,by);
+const cmp  = (order,by)=> order==='desc'
+  ?(a,b)=>desc(a,b,by)
+  :(a,b)=>-desc(a,b,by);
 
 export default function CommunityBoard(){
   const nav = useNavigate();
@@ -28,11 +32,10 @@ export default function CommunityBoard(){
   const [order,setOrder]=useState('desc');
   const [orderBy,setOrderBy]=useState('createdAt');
   const [page,setPage]=useState(1);
-  const per=10;
+  const per = 10;
 
-  /* 데이터 로드 */
   useEffect(()=>{
-    axios.get('/api/v1/community-posts')
+    axios.get(`${API}/api/v1/community-posts`)
          .then(r=>{
            const arr = Array.isArray(r.data)?r.data:r.data.payload;
            setRows(arr.map(p=>({
@@ -40,7 +43,8 @@ export default function CommunityBoard(){
              createdAt:new Date(p.createdAt).toLocaleString(),
              views:p.views, likes:p.likes
            })));
-         });
+         })
+         .catch(()=>alert('커뮤니티 글 로딩 실패'));
   },[]);
 
   const sorted = rows.slice().sort(cmp(order,orderBy));

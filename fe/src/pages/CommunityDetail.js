@@ -3,12 +3,14 @@ import { useParams,useNavigate } from 'react-router-dom';
 import { Paper,Typography,Divider,Stack,Button } from '@mui/material';
 import axios from 'axios';
 
+const API = `${window.location.protocol}//${window.location.hostname}:8080`;
+
 export default function CommunityDetail(){
   const {id}=useParams(); const nav=useNavigate();
   const [post,setPost]=useState(null);
 
   useEffect(()=>{
-    axios.get(`/api/v1/community-posts/${id}`)
+    axios.get(`${API}/api/v1/community-posts/${id}`)
          .then(r=>{
            const p=r.data.payload||r.data;
            setPost({...p,createdAt:new Date(p.createdAt).toLocaleString()});
@@ -17,7 +19,7 @@ export default function CommunityDetail(){
   },[id,nav]);
 
   const like=()=>{
-    axios.post(`/api/v1/community-posts/${id}/like`)
+    axios.post(`${API}/api/v1/community-posts/${id}/like`)
          .then(r=>setPost(p=>({...p,likes:r.data.payload||r.data})));
   };
 
