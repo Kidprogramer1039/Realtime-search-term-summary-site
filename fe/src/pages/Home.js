@@ -1,10 +1,29 @@
 import React from 'react';
+import { Container, Stack } from '@mui/material';
+import BoardPreview from '../components/BoardPreview';
 
-const Home = () => (
-  <div>
-    <h1>참견해주세요</h1>
-    <p>자극적인 것을 좋아하는 현대인을 위한 소셜 피드백 플랫폼</p>
-  </div>
-);
-
-export default Home;
+export default function Home() {
+  return (
+    <Container maxWidth="lg" sx={{ mt: 4 }}>
+      {/* xs: column, md↑: row → 자동 반응형 */}
+      <Stack
+        direction={{ xs: 'column', md: 'row' }}
+        spacing={3}
+        alignItems="stretch"
+      >
+        <BoardPreview
+          title="자유 게시판 최신글"
+          apiPath="/api/v1/posts"
+          linkBase="/free"
+          sx={{ flex: 1 }}
+        />
+        <BoardPreview
+          title="커뮤니티 게시판 최신글"
+          apiPath="/api/v1/community-posts"
+          linkBase="/community"
+          sx={{ flex: 1 }}
+        />
+      </Stack>
+    </Container>
+  );
+}

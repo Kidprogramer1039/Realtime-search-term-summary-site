@@ -29,11 +29,11 @@ const API_BASE_URL = `${protocol}//${hostname}:8080`;   // 무조건 8080 붙여
 const api = axios.create({ baseURL: API_BASE_URL });
 
 const headCells = [
-  { id: 'title',     label: 'Title' },
-  { id: 'writer',    label: 'Writer' },
-  { id: 'createdAt', label: 'Date' },
-  { id: 'views',     label: 'Views', align: 'right' },
-  { id: 'likes',     label: 'Likes', align: 'right' }
+  { id:'title',     label:'제목'  },
+  { id:'writer',    label:'글쓴이' },
+  { id:'createdAt', label:'작성 날짜'   },
+  { id:'views',     label:'조회수', align:'right' },
+  { id:'likes',     label:'좋아요 수', align:'right' }
 ];
 
 export default function FreeBoard() {
