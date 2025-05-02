@@ -19,10 +19,12 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 
 const { protocol, hostname, port } = window.location;
-const API_BASE_URL =
-  (port && port !== '8080')
-    ? `${protocol}//${hostname}:8080`
-    : window.location.origin;
+// const API_BASE_URL =
+//   (port && port !== '8080')
+//     ? `${protocol}//${hostname}:8080`
+//     : window.location.origin;
+
+const API_BASE_URL = `${protocol}//${hostname}:8080`;   // 무조건 8080 붙여-쏨
 
 const api = axios.create({ baseURL: API_BASE_URL });
 
