@@ -29,9 +29,9 @@ const API_BASE = process.env.REACT_APP_API_BASE_URL || window.location.origin;
 const GoogleLoginButton = () => {
   const handleClick = () => {
     // 테스트용
-    window.location.href = `${API_BASE}/oauth2/authorization/google`;
+    // window.location.href = `${API_BASE}/oauth2/authorization/google`;
     // 배포용
-    // window.location.href = `${API_BASE}:8080/oauth2/authorization/google`;
+    window.location.href = `${API_BASE}:8080/oauth2/authorization/google`;
   };
 
   return (
