@@ -14,6 +14,7 @@ import LoginCallback    from './pages/LoginCallback';
 import FreeWrite from './pages/FreeWrite';
 import FreeDetail     from './pages/FreeDetail';
 import Profile         from './pages/Profile'; 
+import Shop from "./pages/Shop";
 import './App.css';
 
 function App() {
@@ -46,6 +47,7 @@ function App() {
             <Route path="/free/:id" element={<FreeDetail />} />
             <Route path="/community" element={<CommunityBoard />} />
             <Route path="/profile"     element={<Profile />} />
+            <Route path="/shop" element={<Shop />} />
 
             {/* 커뮤니티 게시판 */}
             <Route path="/community"         element={<CommunityBoard />} />
