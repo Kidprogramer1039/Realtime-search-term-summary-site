@@ -43,6 +43,10 @@ public class User {
     @Column(name = "post_points", nullable = false, columnDefinition = "INT DEFAULT 0")
     private int postPoints = 0;
 
+    public void setPostPoints(long points) {
+        this.postPoints = (int) points;   // totalViews/100 은 int 범위라 다운캐스트 OK
+    }
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, length = 20)
     private LocalDateTime createdAt;
