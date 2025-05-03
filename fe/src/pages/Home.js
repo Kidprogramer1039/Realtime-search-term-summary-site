@@ -1,19 +1,29 @@
+// src/pages/Home.js
 import React from 'react';
-import { Container, Stack } from '@mui/material';
-import TopPostsCard  from '../components/TopPostsCard';
-import BoardPreview  from '../components/BoardPreview';
+import { Container, Stack, Box } from '@mui/material';
+import AdWideCard from '../components/AdWideCard';
+import TopPostsCard from '../components/TopPostsCard';
+import BoardPreview from '../components/BoardPreview';
 
 export default function Home() {
   return (
-    <Container maxWidth="lg" sx={{ mt:4 }}>
+    <Container maxWidth="lg" sx={{ mt: 4 }}>
+      {/* ── 광고글 와이드 카드 ── */}
+      <Box mb={3}>
+      <BoardPreview
+          title="광고 게시판"
+          apiPath="/api/v1/ads"
+        />
+      </Box>
+
       {/* ── TOP 랭킹 두 카드 ── */}
-      <Stack direction={{ xs:'column', md:'row' }} spacing={3} mb={3}>
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} mb={3}>
         <TopPostsCard type="views" />
         <TopPostsCard type="likes" />
       </Stack>
 
       {/* ── 최신글 카드 두 개 (기존) ── */}
-      <Stack direction={{ xs:'column', md:'row' }} spacing={3}>
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
         <BoardPreview
           title="자유 게시판 최신글"
           apiPath="/api/v1/posts"

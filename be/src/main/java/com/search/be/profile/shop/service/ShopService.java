@@ -10,4 +10,5 @@ public interface ShopService {
     PurchaseResponseDto purchaseItem(String token, PurchaseRequestDto request);
     // 추가: 광고권(구매) 횟수 조회
     int getUserPurchaseCount(String token);
+
 }

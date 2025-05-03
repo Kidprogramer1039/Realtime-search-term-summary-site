@@ -1,3 +1,4 @@
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
@@ -13,7 +14,8 @@ const BoardList = () => {
   const boards = [
     { id: 1, title: '랭킹', path: '/info' },
     { id: 2, title: '자유 게시판', path: '/free' },
-    { id: 3, title: '커뮤니티게시판', path: '/community' },
+    { id: 3, title: '커뮤니티 게시판', path: '/community' },
+    { id: 4, title: '광고 게시판', path: '/ads' }, // 새로 추가
   ];
 
   return (
