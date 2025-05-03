@@ -47,6 +47,11 @@ public class User {
         this.postPoints = (int) points;   // totalViews/100 은 int 범위라 다운캐스트 OK
     }
 
+    // 추가: postCount 업데이트용 setter
+    public void setPostCount(int count) {
+        this.postCount = count;
+    }
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, length = 20)
     private LocalDateTime createdAt;
