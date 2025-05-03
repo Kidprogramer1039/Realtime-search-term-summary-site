@@ -1,3 +1,4 @@
+// src/main/java/com/search/be/login/repository/User.java
 package com.search.be.login.repository;
 
 import jakarta.persistence.*;
@@ -20,7 +21,7 @@ public class User {
     @Column(name = "users_id")
     private Long id;
 
-    @Column(name = "users_uuid", columnDefinition = "BINARY(16)", unique = true)
+    @Column(name = "users_uuid", columnDefinition = "BINARY(16)", unique = true, nullable = false)
     private UUID userId;
 
     @Column(name = "name", nullable = false, length = 5)
@@ -37,26 +38,53 @@ public class User {
     @Column(name = "post_count", nullable = false, columnDefinition = "INT DEFAULT 0")
     private int postCount = 0;
 
-
-    // 게시글 개수를 저장하는 컬럼 (기본값 0)
+    // 기존에 사용하던 총 포인트 컬럼 (기본값 0)
     @Builder.Default
     @Column(name = "post_points", nullable = false, columnDefinition = "INT DEFAULT 0")
     private int postPoints = 0;
 
-    public void setPostPoints(long points) {
-        this.postPoints = (int) points;   // totalViews/100 은 int 범위라 다운캐스트 OK
-    }
-
-    // 추가: postCount 업데이트용 setter
-    public void setPostCount(int count) {
-        this.postCount = count;
-    }
+    // 새로 추가된 “남은 어그로 포인트” 컬럼 (구매 시 차감)
+    @Builder.Default
+    @Column(name = "remain_points", nullable = false, columnDefinition = "INT DEFAULT 0")
+    private int remainPoints = 0;
 
     @CreationTimestamp
-    @Column(name = "created_at", nullable = false, length = 20)
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(name = "updated_at", length = 20)
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    // ─────────────────────────────────────────────────────
+    // /////////// Setter / Helper 메서드 ///////////
+    // ─────────────────────────────────────────────────────
+
+    /** 기존 총 포인트 업데이트 (필요하면) */
+    public void setPostPoints(long points) {
+        this.postPoints = (int) points;
+    }
+
+    /** 남은 어그로 포인트 조회 */
+    public int getRemainPoints() {
+        return this.remainPoints;
+    }
+
+    /** 남은 어그로 포인트 차감 (구매할 때 사용) */
+    public void deductRemainPoints(int cost) {
+        if (this.remainPoints < cost) {
+            throw new IllegalStateException("포인트가 부족합니다.");
+        }
+        this.remainPoints -= cost;
+    }
+
+    /** 게시글 개수 직접 세팅 (ShopServiceImpl에서 호출) */
+    public void setPostCount(int postCount) {
+        this.postCount = postCount;
+    }
+
+    /** 게시글 개수 1 증가 helper */
+    public void incrementPostCount() {
+        this.postCount++;
+    }
 }
