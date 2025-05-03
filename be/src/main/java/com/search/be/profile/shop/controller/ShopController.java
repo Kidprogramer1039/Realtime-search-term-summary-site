@@ -17,40 +17,41 @@ import java.util.Map;
 @RequestMapping("/api/v1/shop")
 @RequiredArgsConstructor
 public class ShopController {
-
     private final ShopService shopService;
 
-    /** 전체 아이템 목록 조회 */
+    /** 1) 상품 목록 조회 */
     @GetMapping("/items")
-    public ResponseEntity<List<ItemDto>> getItems(
+    public ResponseEntity<List<ItemDto>> getAllItems(
             @RequestHeader("Authorization") String authHeader
     ) {
         String token = authHeader.replace("Bearer ", "");
-        return ResponseEntity.ok(shopService.getAllItems(token));
+        List<ItemDto> items = shopService.getAllItems(token);
+        return ResponseEntity.ok(items);
     }
 
-    /** 내 어그로 포인트 조회 */
+    /** 2) 내 포인트 조회 */
     @GetMapping("/points")
-    public ResponseEntity<Map<String,Integer>> getPoints(
+    public ResponseEntity<Map<String,Integer>> getUserPoints(
             @RequestHeader("Authorization") String authHeader
     ) {
         String token = authHeader.replace("Bearer ", "");
-        int pts = shopService.getUserPoints(token);
-        return ResponseEntity.ok(Collections.singletonMap("points", pts));
+        int points = shopService.getUserPoints(token);
+        return ResponseEntity.ok(Collections.singletonMap("points", points));
     }
 
-    /** 아이템 구매 (광고권 구매) */
+    /** 3) 광고권(아이템) 구매 */
     @PostMapping("/purchase")
-    public ResponseEntity<PurchaseResponseDto> purchase(
+    public ResponseEntity<PurchaseResponseDto> purchaseItem(
             @RequestHeader("Authorization") String authHeader,
             @RequestBody PurchaseRequestDto req
     ) {
         String token = authHeader.replace("Bearer ", "");
-        return ResponseEntity.ok(shopService.purchaseItem(token, req));
+        PurchaseResponseDto resp = shopService.purchaseItem(token, req);
+        return ResponseEntity.ok(resp);
     }
 
-    /** 내가 구매한 광고권 개수 조회 */
-    @GetMapping("/purchases/count")
+    /** 4) 내가 구매한 광고권 개수 조회 */
+    @GetMapping("/purchase/count")
     public ResponseEntity<Map<String,Integer>> countPurchases(
             @RequestHeader("Authorization") String authHeader
     ) {
