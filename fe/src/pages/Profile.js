@@ -24,41 +24,44 @@ const api = axios.create({ baseURL: API_BASE_URL });
 export default function Profile() {
   const nav = useNavigate();
   const [stats, setStats] = useState(null);
-  const [posts, setPosts] = useState([]);
-  const [communityPosts, setCommunityPosts] = useState([]);
+  const [freePosts, setFreePosts] = useState([]);
+  const [commPosts, setCommPosts] = useState([]);
+  const [myPosts, setMyPosts] = useState([]);
 
   useEffect(() => {
     const token = localStorage.getItem('refresh_token');
-    if (!token) {
-      nav('/login');
-      return;
-    }
+    if (!token) return nav('/login');
+    const headers = { Authorization: `Bearer ${token}` };
 
-    // 1) 프로필 통계 (username, postCount, totalViews, totalLikes, aggroPoints, adCount)
-    api.get('/api/v1/profile', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    .then(res => {
-      const data = res.data.payload || res.data;
-      setStats(data);
-    })
-    .catch(() => nav('/login'));
+    // 한 번에 다 가져와서 setState
+    Promise.all([
+      api.get('/api/v1/profile',   { headers }),
+      api.get('/api/v1/posts',     { headers }),
+      api.get('/api/v1/community-posts', { headers })
+    ])
+      .then(([resProfile, resFree, resComm]) => {
+        const data = resProfile.data.payload || resProfile.data;
+        setStats(data);
 
-    // 2) 자유게시판 글 목록
-    api.get('/api/v1/posts')
-      .then(res => {
-        const list = res.data.payload || [];
-        setPosts(Array.isArray(list) ? list : []);
+        const freeList = Array.isArray(resFree.data.payload ?? resFree.data)
+          ? (resFree.data.payload || resFree.data)
+          : [];
+        setFreePosts(freeList);
+
+        const commList = Array.isArray(resComm.data.payload ?? resComm.data)
+          ? (resComm.data.payload || resComm.data)
+          : [];
+        setCommPosts(commList);
+
+        // 이제 “내 글만” 걸러내서 myPosts에
+        const username = data.username;
+        const filtered = [
+          ...freeList.filter(p => p.writer === username).map(p => ({ ...p, board: 'FREE' })),
+          ...commList.filter(p => p.writer === username).map(p => ({ ...p, board: 'COMMUNITY' }))
+        ];
+        setMyPosts(filtered);
       })
-      .catch(() => setPosts([]));
-
-    // 3) 커뮤니티게시판 글 목록
-    api.get('/api/v1/community-posts')
-      .then(res => {
-        const list = res.data.payload || [];
-        setCommunityPosts(Array.isArray(list) ? list : []);
-      })
-      .catch(() => setCommunityPosts([]));
+      .catch(() => nav('/login'));
   }, [nav]);
 
   if (!stats) return null;
@@ -69,28 +72,32 @@ export default function Profile() {
         <CardHeader
           title={`${stats.username} 님의 프로필`}
           action={
-            <Button
-              variant="contained"
-              onClick={() => nav('/shop')}
-            >
+            <Button variant="contained" onClick={() => nav('/shop')}>
               상점 이동
             </Button>
           }
         />
         <CardContent>
-          {/* ───────── 통계 ───────── */}
           <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid item xs={2}>
               <Typography>총 글 수</Typography>
-              <Typography variant="h6">{stats.postCount}</Typography>
+              <Typography variant="h6">{myPosts.length}</Typography>
             </Grid>
             <Grid item xs={2}>
               <Typography>총 조회수</Typography>
-              <Typography variant="h6">{stats.totalViews.toLocaleString()}</Typography>
+              <Typography variant="h6">
+                {myPosts
+                  .reduce((sum, p) => sum + (p.views || 0), 0)
+                  .toLocaleString()}
+              </Typography>
             </Grid>
             <Grid item xs={2}>
               <Typography>총 좋아요</Typography>
-              <Typography variant="h6">{stats.totalLikes.toLocaleString()}</Typography>
+              <Typography variant="h6">
+                {myPosts
+                  .reduce((sum, p) => sum + (p.likes || 0), 0)
+                  .toLocaleString()}
+              </Typography>
             </Grid>
             <Grid item xs={2}>
               <Typography>어그로 포인트</Typography>
@@ -102,7 +109,6 @@ export default function Profile() {
             </Grid>
           </Grid>
 
-          {/* ───────── 글 목록 ───────── */}
           <Typography variant="subtitle1" gutterBottom>
             게시판
           </Typography>
@@ -116,50 +122,38 @@ export default function Profile() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {posts.map(p => (
-                <TableRow
-                  key={`FREE-${p.id}`}
-                  hover
-                  sx={{ cursor: 'pointer' }}
-                  onClick={() => nav(`/free/${p.id}`)}
-                >
-                  <TableCell>FREE</TableCell>
-                  <TableCell
-                    sx={{
-                      maxWidth: 300,
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}
+              {myPosts.length > 0 ? (
+                myPosts.map(p => (
+                  <TableRow
+                    key={`${p.board}-${p.id}`}
+                    hover
+                    sx={{ cursor: 'pointer' }}
+                    onClick={() =>
+                      nav(`/${p.board === 'FREE' ? 'free' : 'community'}/${p.id}`)
+                    }
                   >
-                    {p.title}
+                    <TableCell>{p.board}</TableCell>
+                    <TableCell
+                      sx={{
+                        maxWidth: 300,
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}
+                    >
+                      {p.title}
+                    </TableCell>
+                    <TableCell align="right">{p.views}</TableCell>
+                    <TableCell align="right">{p.likes}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} align="center">
+                    작성한 글이 없습니다.
                   </TableCell>
-                  <TableCell align="right">{p.views}</TableCell>
-                  <TableCell align="right">{p.likes}</TableCell>
                 </TableRow>
-              ))}
-              {communityPosts.map(p => (
-                <TableRow
-                  key={`COMMUNITY-${p.id}`}
-                  hover
-                  sx={{ cursor: 'pointer' }}
-                  onClick={() => nav(`/community/${p.id}`)}
-                >
-                  <TableCell>COMMUNITY</TableCell>
-                  <TableCell
-                    sx={{
-                      maxWidth: 300,
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}
-                  >
-                    {p.title}
-                  </TableCell>
-                  <TableCell align="right">{p.views}</TableCell>
-                  <TableCell align="right">{p.likes}</TableCell>
-                </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </CardContent>
