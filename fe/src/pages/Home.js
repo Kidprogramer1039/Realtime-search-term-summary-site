@@ -1,18 +1,19 @@
 // src/pages/Home.js
 import React from 'react';
 import { Container, Stack, Box } from '@mui/material';
-import AdWideCard from '../components/AdWideCard';
 import TopPostsCard from '../components/TopPostsCard';
 import BoardPreview from '../components/BoardPreview';
+import AdBoardPreview from '../components/AdBoardPreview'; // ◯ 올바른 경로
 
 export default function Home() {
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
       {/* ── 광고글 와이드 카드 ── */}
       <Box mb={3}>
-      <BoardPreview
+      <AdBoardPreview
           title="광고 게시판"
           apiPath="/api/v1/ads"
+          showWriter                  // <-- 작성자 표시 옵션 추가
         />
       </Box>
 
