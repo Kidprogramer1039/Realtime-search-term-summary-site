@@ -44,7 +44,7 @@ export default function AdsBoard() {
                   </Typography>
                 </Grid>
                 <Typography variant="body2" color="textSecondary">
-                  작성자: {ad.writer} | {new Date(ad.createdAt).toLocaleString()}
+                  {/* 작성자: {ad.writer} | {new Date(ad.createdAt).toLocaleString()} */}
                 </Typography>
                 <Typography style={{ marginTop: 8 }}>{ad.content}</Typography>
               </CardContent>
